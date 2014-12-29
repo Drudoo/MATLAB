@@ -31,3 +31,11 @@ end
 % nonskin (red *). Tentative analysis would suggest that blue (+) is
 % skin and the red (*) is nonskin. The red (*) data is more spread out of
 % some clusters seem random whereas blue (+) is grouped. 
+
+%% Correlation between components
+[R, P] = corrcoef(prtrain.data)
+% The P matrix shows a correlation of R by random chance.
+% If p < 0.05 the correlation is significant. 
+% Since all values of P are less than 0.05 the values of R are
+% significantly correlated. 
+
