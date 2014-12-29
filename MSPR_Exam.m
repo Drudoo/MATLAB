@@ -12,4 +12,8 @@ fclose(fid);
 data=[Idat{1} Idat{2} Idat{3}];
 
 %Generate prdata
-prdat=prdataset(data, Idat{4}, 'featlab',['r';'g';'b'], 'lablist',['skin   ';'nonskin'])
+prdat = prdataset(data, Idat{4}, 'featlab',['r';'g';'b'], 'lablist',['skin   ';'nonskin']);
+
+%Generate training set and data set with a 80-20% ratio.
+trainSize = round(length(data)*0.8);
+[prtrain, prtest]=gendat(prdat,trainSize);
