@@ -39,3 +39,36 @@ end
 % Since all values of P are less than 0.05 the values of R are
 % significantly correlated. 
 
+%% Principal Component Analysis (p. 216)
+[v,frac] = pcam(prtrain,0);
+figure
+plot(v)
+title('Cumulative Eigenvalues')
+ylabel('Percentage of Explained Variance')
+xlabel('No of Principle Components')
+
+%Plot the PCA scaled to the mean 
+w= pcam(prtrain,3);
+XR = prtrain*w;
+figure
+scatterd(XR,'legend')
+
+%labels = num2str((1:size(XR,1))','%d');    %'
+%text(XR.data(:,1), XR.data(:,2), labels, 'horizontal','left', 'vertical','bottom')
+
+%Plot the unit vectors of the components overlayed the PCA
+hold on;
+factor = 50;
+for i=1:3,
+    line([0 w.data.rot(i,1)*factor],[0 w.data.rot(i,2)*factor],'lineWidth',2,'color','g')
+    text(w.data.rot(i,1)*factor,w.data.rot(i,2)*factor,['   '  w.data.lablist_in(i,:)])
+end
+scatter(w.data.rot(:,1)*factor,w.data.rot(:,2)*factor,'*k')
+xlabel('Component 1')
+ylabel('Component 2')
+
+% Looking at the skin (blue +) it is possible to see based on the unit
+% vectors that the blue color channel is dominent, whereas the red color
+% channel is much less present. For the nonskin (red *) this is opposite, 
+% there we have green and red and the dominent color channel and blue as 
+% less present one.
