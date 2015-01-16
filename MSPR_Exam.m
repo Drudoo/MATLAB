@@ -114,7 +114,6 @@ close all
 A=prdat;
 class_modes={'ldc', 'qdc', 'dtc', 'perlc', 'fisherc', 'nmsc', 'udc', 'nmc', 'parzenc'};
 for i=1:length(class_modes)
-    tic
     figure
     scatterd(A,'legend');
     if strcmp(class_modes{i},'ldc')
@@ -164,5 +163,4 @@ for i=1:length(class_modes)
         %ac(i)=1-e;
         ac(i)=0;
     end
-    toc
 end
