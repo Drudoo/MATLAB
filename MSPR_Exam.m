@@ -72,3 +72,19 @@ ylabel('Component 2')
 % channel is much less present. For the nonskin (red *) this is opposite, 
 % there we have green and red and the dominent color channel and blue as 
 % less present one.
+
+%% Feature Selection (201-202)
+wld=ldc([]);
+wfs=featselm(prtrain,wld,'forward',2)
+figure;
+scatterd(prtrain*wfs);
+title(['forward: ' num2str(+wfs{1})]);
+
+% Using featselm we extract the two important features from the dataset
+% using the wrapper method for linear distriminant analysis and the forward
+% search. The two selected features are Red and Blue. These two features
+% also have the largest standard deviation. If plottet without using
+% Feature Selection Red and Green would be selected. 
+
+
+%%
