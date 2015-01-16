@@ -96,3 +96,14 @@ for i=2:10
 end
 
 % Plotting the training set with clusters from 2 to 10. 
+
+
+%% Gap Statistics
+eva = evalclusters(prtrain.data,'kmeans','gap','KList',[1:10])
+figure;
+plot(eva)
+
+% Evalclusters takes the training set and automatically finds out how many
+% clusters are optimal from 1 to 10. This unfortunately crashes matlab
+% because it runs out of memory (takes up >8GB!). So somehow we need to do
+% some manual clustering. 
