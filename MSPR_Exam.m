@@ -1,7 +1,7 @@
 clc, clear all, close all;
 
 %removing prwaitbar to reduce computation time
-prwaitbar off 
+%prwaitbar off 
 
 %open file and load in data to Idat
 fid = fopen('Skin_NonSkin.txt');
@@ -107,3 +107,63 @@ plot(eva)
 % clusters are optimal from 1 to 10. This unfortunately crashes matlab
 % because it runs out of memory (takes up >8GB!). So somehow we need to do
 % some manual clustering. 
+
+%% Classification 
+clc
+close all
+A=prdat;
+class_modes={'ldc', 'qdc', 'dtc', 'perlc', 'fisherc', 'nmsc', 'udc', 'nmc', 'parzenc'};
+for i=1:length(class_modes)
+    tic
+    figure
+    scatterd(A,'legend');
+    if strcmp(class_modes{i},'ldc')
+        plotc(A(:,1:2)*ldc);
+        title(['Linear Bayes Normal Classifier (' class_modes{i} ')']);
+        [e,ce,nlab_out]= prcrossval(prtrain,ldc([]),4);
+        ac(i)=1-e;
+    elseif strcmp(class_modes{i},'qdc')
+        plotc(A(:,1:2)*qdc);
+        title(['Quadratic Bayes Normal Classifier (' class_modes{i} ')']);
+        [e,ce,nlab_out]= prcrossval(prtrain,qdc([]),4);
+        ac(i)=1-e;
+    elseif strcmp(class_modes{i},'dtc')
+        plotc(A(:,1:2)*dtc);
+        title(['Decision Tree Classifier (' class_modes{i} ')']);
+        [e,ce,nlab_out]= prcrossval(prtrain,dtc([]),4);
+        ac(i)=1-e;
+    elseif strcmp(class_modes{i},'perlc')
+        plotc(perlc(A(:,1:2),10,0.01));
+        title(['Linear Perceptron Classifier (' class_modes{i} ')']);
+        [e,ce,nlab_out]= prcrossval(prtrain,perlc([]),4);
+        ac(i)=1-e;
+    elseif strcmp(class_modes{i},'fisherc')
+        plotc(fisherc(A(:,1:2)));
+        title(['Linear Discriminant Analysis (' class_modes{i} ')']);
+        [e,ce,nlab_out]= prcrossval(prtrain,fisherc([]),4);
+        ac(i)=1-e;
+    elseif strcmp(class_modes{i},'nmsc')
+        plotc(nmsc(A(:,1:2)));
+        title(['Nearest Mean Scaled Classifier (' class_modes{i} ')']);
+        [e,ce,nlab_out]= prcrossval(prtrain,nmsc([]),4);
+        ac(i)=1-e;
+    elseif strcmp(class_modes{i},'udc')
+        plotc(udc(A(:,1:2)));
+        title(['Uncorrelated normal based quadratic Bayes classifier (' class_modes{i} ')']);
+        [e,ce,nlab_out]= prcrossval(prtrain,udc,4);
+        ac(i)=1-e;
+    elseif strcmp(class_modes{i},'nmc')
+        plotc(nmc(A(:,1:2)));
+        title(['Nearest Mean Classifier (' class_modes{i} ')']);
+        [e,ce,nlab_out]= prcrossval(prtrain,nmc([]),4);
+        ac(i)=1-e;
+    elseif strcmp(class_modes{i},'parzenc')
+        plotc(parzenc(A(:,1:2),1));
+        title(['Parzen classifier (' class_modes{i} ')']);
+        %[e,ce,nlab_out]= prcrossval(prtrain,nmc([]),4);
+        %ac(i)=1-e;
+        ac(i)=0;
+    end
+    toc
+end
+ac
