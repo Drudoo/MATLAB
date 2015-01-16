@@ -77,7 +77,7 @@ ylabel('Component 2')
 wld=ldc([]);
 wfs=featselm(prtrain,wld,'forward',2)
 figure;
-scatterd(prtrain*wfs);
+scatterd(prtrain*wfs,'legend');
 title(['forward: ' num2str(+wfs{1})]);
 
 % Using featselm we extract the two important features from the dataset
@@ -87,4 +87,12 @@ title(['forward: ' num2str(+wfs{1})]);
 % Feature Selection Red and Green would be selected. 
 
 
-%%
+%% Clustering (226)
+for i=2:10
+    [idx]=prkmeans(prtrain,i);
+    figure;
+    scatter(prtrain(:,1),prtrain(:,2),[],idx);
+    title([num2str(i) ' Groups'])
+end
+
+% Plotting the training set with clusters from 2 to 10. 
