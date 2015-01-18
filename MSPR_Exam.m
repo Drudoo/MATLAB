@@ -33,7 +33,7 @@ end
 % some clusters seem random whereas blue (+) is grouped. 
 
 %% Correlation between components
-[R, P] = corrcoef(prtrain.data)
+[R, P] = corrcoef(prtrain.data);
 % The P matrix shows a correlation of R by random chance.
 % If p < 0.05 the correlation is significant. 
 % Since all values of P are less than 0.05 the values of R are
@@ -75,13 +75,9 @@ ylabel('Component 2')
 
 %% PCA plot
 varLabels={'Red','Green','Blue'};
-for ii = 1:3
-    PCAdata(:,ii) = (data(:,ii)-mean(data(:,ii)))./sqrt(var(data(:,ii)));
-end
-colormap parula
-Cz = cov(PCAdata);
-Cz = [Cz Cz(:,end); Cz(end,1:end) Cz(end,end)]; %add one row bcus pcolor removes 1
-pcolor(Cz); axis xy; grid on; colorbar;
+[R, P] = corrcoef(prtrain.data);
+R = [R R(:,end); R(end,1:end) R(end,end)]; %add one row bcus pcolor removes 1
+pcolor(R); axis xy; grid on; colorbar;
 % create place for labels showing dimension
 set(gca,'YTick',[1:length(varLabels)]+0.5,'YTickLabel',varLabels,'FontSize',12);
 set(gca,'XTick',[1:length(varLabels)]+0.5,'XTickLabel',varLabels,'FontSize',12);
@@ -102,10 +98,12 @@ title(['forward: ' num2str(+wfs{1})]);
 
 %% Clustering (226)
 for i=2:10
+    tic
     [idx]=prkmeans(prtrain,i);
     figure;
     scatter(prtrain(:,1),prtrain(:,2),[],idx);
     title([num2str(i) ' Groups'])
+    toc
 end
 
 % Plotting the training set with clusters from 2 to 10. 
