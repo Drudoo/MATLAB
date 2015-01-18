@@ -48,7 +48,7 @@ ylabel('Percentage of Explained Variance')
 xlabel('No of Principle Components')
 
 %Plot the PCA scaled to the mean 
-w= pcam(prtrain,3);
+w= pcam(prtrain,2);
 XR = prtrain*w;
 figure
 scatterd(XR,'legend')
@@ -73,9 +73,22 @@ ylabel('Component 2')
 % there we have green and red and the dominent color channel and blue as 
 % less present one.
 
+%% PCA plot
+varLabels={'Red','Green','Blue'};
+for ii = 1:3
+    PCAdata(:,ii) = (data(:,ii)-mean(data(:,ii)))./sqrt(var(data(:,ii)));
+end
+colormap parula
+Cz = cov(PCAdata);
+Cz = [Cz Cz(:,end); Cz(end,1:end) Cz(end,end)]; %add one row bcus pcolor removes 1
+pcolor(Cz); axis xy; grid on; colorbar;
+% create place for labels showing dimension
+set(gca,'YTick',[1:length(varLabels)]+0.5,'YTickLabel',varLabels,'FontSize',12);
+set(gca,'XTick',[1:length(varLabels)]+0.5,'XTickLabel',varLabels,'FontSize',12);
+
 %% Feature Selection (201-202)
 wld=ldc([]);
-wfs=featselm(prtrain,wld,'forward',2)
+[wfs R]=featselm(prtrain,wld,'forward',2);
 figure;
 scatterd(prtrain*wfs,'legend');
 title(['forward: ' num2str(+wfs{1})]);
@@ -97,7 +110,6 @@ end
 
 % Plotting the training set with clusters from 2 to 10. 
 
-
 %% Gap Statistics
 eva = evalclusters(prtrain.data,'kmeans','gap','KList',[1:10])
 figure;
@@ -111,56 +123,60 @@ plot(eva)
 %% Classification 
 clc
 close all
-A=prdat;
+A=prdat(:,[1 3]);
 class_modes={'ldc', 'qdc', 'dtc', 'perlc', 'fisherc', 'nmsc', 'udc', 'nmc', 'parzenc'};
 for i=1:length(class_modes)
+    tic
     figure
     scatterd(A,'legend');
     if strcmp(class_modes{i},'ldc')
-        plotc(A(:,1:2)*ldc);
+        plotc(A*ldc);
         title(['Linear Bayes Normal Classifier (' class_modes{i} ')']);
         [e,ce,nlab_out]= prcrossval(prtrain,ldc([]),4);
         ac(i)=1-e;
     elseif strcmp(class_modes{i},'qdc')
-        plotc(A(:,1:2)*qdc);
+        plotc(A*qdc);
         title(['Quadratic Bayes Normal Classifier (' class_modes{i} ')']);
         [e,ce,nlab_out]= prcrossval(prtrain,qdc([]),4);
         ac(i)=1-e;
     elseif strcmp(class_modes{i},'dtc')
-        plotc(A(:,1:2)*dtc);
+        plotc(A*dtc);
         title(['Decision Tree Classifier (' class_modes{i} ')']);
         [e,ce,nlab_out]= prcrossval(prtrain,dtc([]),4);
         ac(i)=1-e;
     elseif strcmp(class_modes{i},'perlc')
-        plotc(perlc(A(:,1:2),10,0.01));
+        plotc(perlc(A,10,0.01));
         title(['Linear Perceptron Classifier (' class_modes{i} ')']);
         [e,ce,nlab_out]= prcrossval(prtrain,perlc([]),4);
         ac(i)=1-e;
     elseif strcmp(class_modes{i},'fisherc')
-        plotc(fisherc(A(:,1:2)));
+        plotc(fisherc(A));
         title(['Linear Discriminant Analysis (' class_modes{i} ')']);
         [e,ce,nlab_out]= prcrossval(prtrain,fisherc([]),4);
         ac(i)=1-e;
     elseif strcmp(class_modes{i},'nmsc')
-        plotc(nmsc(A(:,1:2)));
+        plotc(nmsc(A));
         title(['Nearest Mean Scaled Classifier (' class_modes{i} ')']);
         [e,ce,nlab_out]= prcrossval(prtrain,nmsc([]),4);
         ac(i)=1-e;
     elseif strcmp(class_modes{i},'udc')
-        plotc(udc(A(:,1:2)));
+        plotc(udc(A));
         title(['Uncorrelated normal based quadratic Bayes classifier (' class_modes{i} ')']);
         [e,ce,nlab_out]= prcrossval(prtrain,udc,4);
         ac(i)=1-e;
     elseif strcmp(class_modes{i},'nmc')
-        plotc(nmc(A(:,1:2)));
+        plotc(nmc(A));
         title(['Nearest Mean Classifier (' class_modes{i} ')']);
         [e,ce,nlab_out]= prcrossval(prtrain,nmc([]),4);
         ac(i)=1-e;
     elseif strcmp(class_modes{i},'parzenc')
-        plotc(parzenc(A(:,1:2),1));
+        plotc(parzenc(A,1));
         title(['Parzen classifier (' class_modes{i} ')']);
-        %[e,ce,nlab_out]= prcrossval(prtrain,nmc([]),4);
+        %[e,ce,nlab_out]= prcrossval(prtrain,parzenc,4); %use too much
+        % memory
         %ac(i)=1-e;
         ac(i)=0;
     end
-end
+    C{i}=confmat(prtrain.nlab,nlab_out);
+    toc
+end 
