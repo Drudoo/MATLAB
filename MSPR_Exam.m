@@ -63,7 +63,7 @@ for i=2:3,
         end
         scatterd(prtrain(:,[i j]),'legend')
         title(sprintf('Feature %s vs. %s',colors{i},colors{j}))
-        % reverse the plot order. Plot skin on top on non-skin. 
+        % Reverse the plot order. Plot skin on top on non-skin. 
         set(gca,'Children',flipud(get(gca,'Children'))); 
     end
 end
@@ -79,8 +79,6 @@ end
 % If p < 0.05 the correlation is significant. 
 % Since all values of P are less than 0.05 the values of R are
 % significantly correlated. 
-
-
 
 %% Principal Component Analysis (p. 216)
 classes = {'prtrain', 'prdatSmall'};
@@ -115,6 +113,8 @@ for i=1:length(classes)
     
 % Plot the unit vectors of the components overlayed the PCA
     hold on;
+% Unit Vectors are very small, therefor they are scaled my a factor of 50,
+% so they are visible without zooming. 
     factor = 50;
     for j=1:3,
         line([0 w.data.rot(j,1)*factor],[0 w.data.rot(j,2)*factor],'lineWidth',2,'color','g')
@@ -132,7 +132,7 @@ end
 % there we have green and red and the dominent color channel and blue as 
 % less present one.
 
-%% PCA plot
+%% Principal Component Analysis plot
 varLabels={'Red','Green','Blue'};
 classes = {'prtrain', 'prdatSmall'};
 figure;
@@ -143,13 +143,19 @@ for i=1:length(classes)
     elseif strcmp(classes{i},'prdatSmall')
         [R, P] = corrcoef(prdatSmall.data);
     end
-    R = [R R(:,end); R(end,1:end) R(end,end)]; %add one row bcus pcolor removes 1
+    R = [R R(:,end); R(end,1:end) R(end,end)];
     pcolor(R); axis xy; grid on; colorbar;
-    % create place for labels showing dimension
+% Create place for labels showing dimension
     set(gca,'YTick',[1:length(varLabels)]+0.5,'YTickLabel',varLabels,'FontSize',12);
     set(gca,'XTick',[1:length(varLabels)]+0.5,'XTickLabel',varLabels,'FontSize',12);
     title(['Correlation Coefficients Plot (' classes{i} ')'],'fontSize',20);
 end
+
+% Both the prtrain and prdatSmall is drawn in a subplot. By looking at the
+% plot and each of their R values, the correlation coefficients are
+% virtually the same, even though the dataset has been reduced from 245057
+% to 1000. 
+
 %% Feature Selection (201-202)
 [wfs R]=featselm(prtrain,ldc([]),'forward',2);
 figure;
@@ -173,18 +179,18 @@ for i=2:15
     title([num2str(i) ' Groups'])
     toc
 end
-% Plotting the training set with clusters from 2 to 10. 
+% Plotting the training set with clusters from 2 to 15. 
 % Since the Feature Selection said that feature 1 (red) and feature 3
 % (blue) were the most important ones, we plot them vs each other and try
-% and determine 10 different clusters. 
+% and determine 15 different clusters. 
 
 %% Gap Statistics
 % Computation time: 193.713183 seconds
-tic
+
 eva = evalclusters(prdatSmall.data,'kmeans','gap','KList',[1:15])
 figure;
 plot(eva)
-toc
+
 % Evalclusters takes the training set and automatically finds out how many
 % clusters are optimal from 1 to 10. This unfortunately crashes matlab
 % because it runs out of memory (takes up >8GB!). So somehow we need to do
@@ -195,19 +201,23 @@ toc
 % and see what the optimal number of clusers would be. 
 
 % Result shows that 13 clusters would be optimal on a number from 1 to 15.
+% Even though MATLAB says 13 clusters is optimal, this is not the case when
+% looking at the actual data. The way MATLAB determines the clusters are
+% not working well with this dataset. 
 
 %% Classification 
 % Computation time: 160.6440 seconds.
 
-% The big part is classification, we are going to use both parametric (ldc, qdc, nmc) and
-% non-parametric (dtc, perlc, parzenc, knnc) classifiers. Some classifiers cannot
-% run with the original dataset (prdat), so they will run with the scaled
-% down dataset (prdatSmall). 
+% The big part is classification, we are going to use both parametric (ldc, 
+% qdc, nmc fisherc) and non-parametric (dtc, svc, parzenc, knnc) 
+% classifiers. Some classifiers cannot run with the original dataset 
+% (prdat), so they will run with the scaled down dataset (prdatSmall). 
 
 r_width=1; c_r=2;
 pol_ord=2; c_p=1;
-figure;
-class_modes={'ldc', 'qdc', 'dtc', 'svc', 'fisherc', 'udc', 'nmc', 'parzenc', 'knnc'};
+
+class_modes={'ldc', 'qdc', 'dtc', 'parzenc', 'fisherc', 'nmc','svc', 'knnc'};
+
 for i=1:length(class_modes)
     tic
     A=prdat(:,[3 1]);
@@ -216,21 +226,32 @@ for i=1:length(class_modes)
         scatterd(A,'legend');
     end
     if strcmp(class_modes{i},'ldc')
+% LDC(parametric): Linear method. Assumes normal densities with equal 
+% covariance matrices.
         plotc(A*ldc);
         [e,ce,nlab_out]= prcrossval(prtrain,ldc([]),4);
         ac(i)=1-e;
         title(['Linear Bayes Normal (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'qdc')
+% QDC(parametric): Quadratic method, nonlinear boundaries. Can have 
+% different covariance matrices. 
         plotc(A*qdc);
         [e,ce,nlab_out]= prcrossval(prtrain,qdc([]),4);
         ac(i)=1-e;
         title(['Quadratic Bayes Normal (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'dtc')
+% DTC(non-parametric): Creates a decision tree and organizes a series of 
+% test questions and conditions to create tree structure. 
         plotc(A*dtc);
         [e,ce,nlab_out]= prcrossval(prtrain,dtc([]),4);
         ac(i)=1-e;
         title(['Decision Tree (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'svc')
+% SVC(non-parametric): An SVM classifies data by finding the best 
+% hyperplane that separates all data points of one class from those of the 
+% other class. The best hyperplane for an SVM means the one with the 
+% largest margin between the two classes. The SVM can be linear (straight 
+% line between the classes) or e.g. polynomial to support curved separation.
         A=prdatSmall(:,[3 1]);
         scatterd(A,'legend');
         plotc(A*svc(proxm('p',3)));
@@ -238,21 +259,31 @@ for i=1:length(class_modes)
         ac(i)=1-e;
         title(['Support Vector Machine, polynomial kernel (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'fisherc')
+% Fisherc(parametric): Equivalent to LDC. fisherc can be formulated as a 
+% least squares problem. Should give the same result with a binary dataset,
+% but with multiple classes a difference can occur. May not find a 
+% separating hyperplane if classes are linearly separable
         plotc(fisherc(A));
         [e,ce,nlab_out]= prcrossval(prtrain,fisherc([]),4);
         ac(i)=1-e;
-        title(['Linear Discriminant (' class_modes{i} '), Ac: ' num2str(ac(i))]);
+        title(['Least Square Linear Discriminant (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'udc')
+% Exclude UDC because we are not sure what it actually does. 
         plotc(udc(A));
         [e,ce,nlab_out]= prcrossval(prtrain,udc,4);
         ac(i)=1-e;
         title(['Uncorrelated normal based quadratic Bayes (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'nmc')
+% NMC(parametric): Assigns to observations the label of the class of 
+% training samples whose mean is closest to the observation. 
         plotc(nmc(A));
         [e,ce,nlab_out]= prcrossval(prtrain,nmc([]),4);
         ac(i)=1-e;
         title(['Nearest Mean (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'parzenc')
+% Parzenc(non-parametric): given kernel function, the technique 
+% approximates a given training set distribution via a linear combination 
+% of kernels centered on the observed points
         A=prdatSmall(:,[3 1]);
         scatterd(A,'legend');
         plotc(parzenc(A,1));
@@ -260,6 +291,12 @@ for i=1:length(class_modes)
         ac(i)=1-e;
         title(['Parzen (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'knnc')
+% KNNC(non-parametric): KNNC assumes that objects closer to each other are 
+% more likely to be related than objects far from each other. The way in 
+% which the algorithm decides which of the points from the training set 
+% are similar enough to be considered when choosing the class to predict 
+% for a new observation is to pick the k closest data points to the new 
+% observation, and to take the most common class among these.
         A=prdatSmall(:,[3 1]);
         scatterd(A,'legend');
         plotc(knnc(A));
