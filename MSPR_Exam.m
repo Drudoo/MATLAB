@@ -151,8 +151,7 @@ for i=1:length(classes)
     title(['Correlation Coefficients Plot (' classes{i} ')'],'fontSize',20);
 end
 %% Feature Selection (201-202)
-wld=ldc([]);
-[wfs R]=featselm(prtrain,wld,'forward',2);
+[wfs R]=featselm(prtrain,ldc([]),'forward',2);
 figure;
 scatterd(prtrain*wfs,'legend');
 title(['forward: ' num2str(+wfs{1})]);
@@ -170,7 +169,7 @@ for i=2:15
     tic
     [idx]=prkmeans(prdatSmall,i);
     figure;
-    scatter(prdatSmall(:,1),prdatSmall(:,3),[],idx);
+    scatter(prdatSmall(:,3),prdatSmall(:,1),[],idx);
     title([num2str(i) ' Groups'])
     toc
 end
@@ -205,10 +204,13 @@ toc
 % run with the original dataset (prdat), so they will run with the scaled
 % down dataset (prdatSmall). 
 
+r_width=1; c_r=2;
+pol_ord=2; c_p=1;
 figure;
-class_modes={'ldc', 'qdc', 'dtc', 'perlc', 'fisherc', 'udc', 'nmc', 'parzenc', 'knnc'};
+class_modes={'ldc', 'qdc', 'dtc', 'svc', 'fisherc', 'udc', 'nmc', 'parzenc', 'knnc'};
 for i=1:length(class_modes)
-    A=prdat(:,[1 3]);
+    tic
+    A=prdat(:,[3 1]);
     subplot(3,3,i);
     if (strcmp(class_modes{i},'parzenc') ~=1 || strcmp(class_modes{i},'perlc') ~=1 || strcmp(class_modes{i},'knnc') ~=1)
         scatterd(A,'legend');
@@ -228,13 +230,13 @@ for i=1:length(class_modes)
         [e,ce,nlab_out]= prcrossval(prtrain,dtc([]),4);
         ac(i)=1-e;
         title(['Decision Tree (' class_modes{i} '), Ac: ' num2str(ac(i))]);
-    elseif strcmp(class_modes{i},'perlc')
-        A=prdatSmall(:,[1 3]);
+    elseif strcmp(class_modes{i},'svc')
+        A=prdatSmall(:,[3 1]);
         scatterd(A,'legend');
-        plotc(perlc(A,10,0.01));
-        [e,ce,nlab_out]= prcrossval(prdatSmall,perlc([]),4);
+        plotc(A*svc(proxm('p',3)));
+        [e,ce,nlab_out]= prcrossval(prdatSmall,svc(proxm('p',3)),4);
         ac(i)=1-e;
-        title(['Linear Perceptron (' class_modes{i} '), Ac: ' num2str(ac(i))]);
+        title(['Support Vector Machine, polynomial kernel (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'fisherc')
         plotc(fisherc(A));
         [e,ce,nlab_out]= prcrossval(prtrain,fisherc([]),4);
@@ -251,23 +253,24 @@ for i=1:length(class_modes)
         ac(i)=1-e;
         title(['Nearest Mean (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'parzenc')
-        A=prdatSmall(:,[1 3]);
+        A=prdatSmall(:,[3 1]);
         scatterd(A,'legend');
         plotc(parzenc(A,1));
         [e,ce,nlab_out]= prcrossval(prdatSmall,parzenc,4);
         ac(i)=1-e;
         title(['Parzen (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     elseif strcmp(class_modes{i},'knnc')
-        A=prdatSmall(:,[1 3]);
+        A=prdatSmall(:,[3 1]);
         scatterd(A,'legend');
         plotc(knnc(A));
         [e,ce,nlab_out]= prcrossval(prdatSmall,knnc,4);
         ac(i)=1-e;
         title(['K-Nearest Neighbor (' class_modes{i} '), Ac: ' num2str(ac(i))]);
     end
-    if (strcmp(class_modes{i},'parzenc') || strcmp(class_modes{i},'perlc') || strcmp(class_modes{i},'knnc'))
+    if (strcmp(class_modes{i},'parzenc') || strcmp(class_modes{i},'svc') || strcmp(class_modes{i},'knnc'))
         C{i}=confmat(prdatSmall.nlab,nlab_out);
     else 
         C{i}=confmat(prtrain.nlab,nlab_out);
     end
+    toc
 end 
