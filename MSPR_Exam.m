@@ -37,7 +37,7 @@ fclose(fid);
 data=[Idat{1} Idat{2} Idat{3}];
 
 % Generate prdata
-prdat = prdataset(data, Idat{4}, 'featlab',['red  ';'green';'blue '], 'lablist',['skin   ';'nonskin']);
+prdat = prdataset(data, Idat{4}, 'featlab',['blue ';'green';'red  '], 'lablist',['skin   ';'nonskin']);
 
 % Generate training set and data set with a 80-20% ratio.
 trainSize = round(length(data)*0.8);
@@ -48,11 +48,11 @@ trainSize = round(length(data)*0.8);
 dataSmall = datasample([data Idat{4}],1000);
 
 % Generate small set of prdata. 
-prdatSmall = prdataset([dataSmall(:,1) dataSmall(:,2) dataSmall(:,3)], dataSmall(:,4), 'featlab',['red  ';'green';'blue '], 'lablist',['skin   ';'nonskin']);
+prdatSmall = prdataset([dataSmall(:,1) dataSmall(:,2) dataSmall(:,3)], dataSmall(:,4), 'featlab',['blue ';'green';'red  '], 'lablist',['skin   ';'nonskin']);
 
 %% Plot components in a scatter plot against each other. 
 % Computation time: 7.130323 seconds
-colors = {'red' 'green' 'blue'};
+colors = {'blue' 'green' 'red'};
 figure;
 for i=2:3,
     for j=1:i-1,
@@ -127,13 +127,13 @@ for i=1:length(classes)
 end
 
 % Looking at the skin (blue +) it is possible to see based on the unit
-% vectors that the blue color channel is dominent, whereas the red color
+% vectors that the red color channel is dominent, whereas the blue color
 % channel is much less present. For the nonskin (red *) this is opposite, 
-% there we have green and red and the dominent color channel and blue as 
+% there we have green and blue and the dominent color channel and red as 
 % less present one.
 
 %% Principal Component Analysis plot
-varLabels={'Red','Green','Blue'};
+varLabels={'Blue','Green','Red'};
 classes = {'prtrain', 'prdatSmall'};
 figure;
 for i=1:length(classes)
